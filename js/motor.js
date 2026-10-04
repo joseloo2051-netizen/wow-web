@@ -1,264 +1,62 @@
+// Contenido principal de js/motor.js
 const MotorJuego = {
     escena: null,
     camara: null,
     renderizador: null,
     jugador: null,
     enemigos: [],
-    vetasMineral: [],
-    npcMisiones: null,
     activo: false,
-    fotogramasRenderizados: 0,
-
-    // Método de registro visual y en consola
-    log(mensaje, esError = false) {
-        if (esError) {
-            console.error("MOTOR ERROR:", mensaje);
-        } else {
-            console.log("MOTOR LOG:", mensaje);
-        }
-
-        // Crear/Buscar panel de depuración en pantalla
-        let panelDebug = document.getElementById('panel-debug-3d');
-        if (!panelDebug) {
-            panelDebug = document.createElement('div');
-            panelDebug.id = 'panel-debug-3d';
-            panelDebug.style.position = 'absolute';
-            panelDebug.style.top = '10px';
-            panelDebug.style.left = '250px';
-            panelDebug.style.background = 'rgba(0,0,0,0.8)';
-            panelDebug.style.color = '#00ff00';
-            panelDebug.style.padding = '8px';
-            panelDebug.style.fontSize = '12px';
-            panelDebug.style.zIndex = '9999';
-            panelDebug.style.pointerEvents = 'none';
-            document.body.appendChild(panelDebug);
-        }
-        panelDebug.innerText = `[DEBUG 3D] ${mensaje}`;
-    },
 
     iniciarJuego() {
-        this.log("Iniciando motor 3D...");
-
-        // Verificar existencia de la librería Three.js
+        registrarLog("Iniciando motor 3D...");
+        
         if (typeof THREE === 'undefined') {
-            this.log("ERROR: La librería Three.js no está cargada en el navegador.", true);
-            alert("Error: No se pudo cargar Three.js. Revisa tu conexión a internet o los CDN en el HTML.");
+            registrarLog("ERROR: Three.js no cargó.", true);
             return;
         }
 
         const contenedor = document.getElementById('contenedor-3d');
-        if (!contenedor) {
-            this.log("ERROR: No se encontró la etiqueta #contenedor-3d en el DOM.", true);
-            return;
-        }
+        contenedor.innerHTML = '';
 
-        contenedor.innerHTML = ''; // Limpiar lienzo anterior
+        this.escena = new THREE.Scene();
+        this.escena.background = new THREE.Color(0x87ceeb);
 
-        try {
-            // 1. Crear Escena
-            this.escena = new THREE.Scene();
-            this.escena.background = new THREE.Color(0x87ceeb); // Cielo azul
-            this.log("Escena 3D creada.");
+        const ancho = window.innerWidth;
+        const alto = window.innerHeight;
+        this.camara = new THREE.PerspectiveCamera(60, ancho / alto, 0.1, 1000);
 
-            // 2. Crear Cámara
-            const ancho = window.innerWidth || 800;
-            const alto = window.innerHeight || 600;
-            this.camara = new THREE.PerspectiveCamera(60, ancho / alto, 0.1, 1000);
-            this.log(`Cámara configurada (${ancho}x${alto}).`);
+        this.renderizador = new THREE.WebGLRenderer({ antialias: true });
+        this.renderizador.setSize(ancho, alto);
+        contenedor.appendChild(this.renderizador.domElement);
 
-            // 3. Crear Renderizador WebGL
-            this.renderizador = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-            this.renderizador.setSize(ancho, alto);
-            this.renderizador.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        // Luz basica
+        const luz = new THREE.DirectionalLight(0xffffff, 1);
+        luz.position.set(10, 20, 10);
+        this.escena.add(luz);
+        this.escena.add(new THREE.AmbientLight(0x404040));
 
-            // Forzar estilos del canvas para garantizar visibilidad
-            const canvas = this.renderizador.domElement;
-            canvas.style.position = 'absolute';
-            canvas.style.top = '0';
-            canvas.style.left = '0';
-            canvas.style.zIndex = '1';
-            
-            contenedor.appendChild(canvas);
-            this.log("Canvas WebGL añadido al DOM.");
-
-            // 4. Luces
-            const luzSol = new THREE.DirectionalLight(0xffffff, 1.2);
-            luzSol.position.set(50, 100, 50);
-            this.escena.add(luzSol);
-
-            const luzAmbiental = new THREE.AmbientLight(0xffffff, 0.8);
-            this.escena.add(luzAmbiental);
-
-            // 5. Generar Terreno
-            this.generarTerrenoYMundo();
-            this.log("Mundo 3D generado.");
-
-            // 6. Crear Jugador
-            this.jugador = new Jugador(this.escena);
-            this.jugador.actualizar(this.camara);
-            this.log("Jugador inicializado.");
-
-            // 7. Controles
-            if (!this.eventosConfigurados) {
-                window.addEventListener('keydown', (e) => {
-                    if (e.key === '1') this.atacar(20);
-                    if (e.key === '2') this.atacar(45);
-                    if (e.key.toLowerCase() === 'e') this.interactuar();
-                });
-                window.addEventListener('resize', () => this.redimensionar());
-                this.eventosConfigurados = true;
-            }
-
-            this.activo = true;
-            this.fotogramasRenderizados = 0;
-            this.redimensionar();
-
-            // Arrancar el bucle de renderizado
-            this.bucle();
-
-        } catch (error) {
-            this.log(`EXCEPCIÓN AL INICIAR: ${error.message}`, true);
-            console.error(error);
-        }
-    },
-
-    generarTerrenoYMundo() {
-        // Suelo Verde (Hierba)
-        const sueloGeo = new THREE.PlaneGeometry(200, 200);
-        const sueloMat = new THREE.MeshStandardMaterial({ color: 0x3b7a57 });
+        // Suelo de prueba
+        const sueloGeo = new THREE.PlaneGeometry(100, 100);
+        const sueloMat = new THREE.MeshStandardMaterial({ color: 0x2e8b57 });
         const suelo = new THREE.Mesh(sueloGeo, sueloMat);
         suelo.rotation.x = -Math.PI / 2;
         this.escena.add(suelo);
 
-        // Camino
-        const caminoGeo = new THREE.PlaneGeometry(10, 150);
-        const caminoMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
-        const camino = new THREE.Mesh(caminoGeo, caminoMat);
-        camino.rotation.x = -Math.PI / 2;
-        camino.position.set(0, 0.02, -30);
-        this.escena.add(camino);
-
-        // Montañas
-        for (let i = 0; i < 12; i++) {
-            const alt = 15 + Math.random() * 15;
-            const mtnGeo = new THREE.ConeGeometry(10, alt, 6);
-            const mtnMat = new THREE.MeshStandardMaterial({ color: 0x555555 });
-            const montaña = new THREE.Mesh(mtnGeo, mtnMat);
-            
-            const angulo = (i / 12) * Math.PI * 2;
-            montaña.position.set(Math.cos(angulo) * 85, alt / 2, Math.sin(angulo) * 85);
-            this.escena.add(montaña);
+        if (window.Jugador) {
+            this.jugador = new Jugador(this.escena);
         }
 
-        // Casas
-        for (let i = -1; i <= 1; i += 2) {
-            const casaGeo = new THREE.BoxGeometry(6, 6, 6);
-            const casaMat = new THREE.MeshStandardMaterial({ color: 0x6e473b });
-            const casa = new THREE.Mesh(casaGeo, casaMat);
-            casa.position.set(i * 12, 3, 0);
-            this.escena.add(casa);
-        }
-
-        // NPC Misiones
-        const npcGeo = new THREE.CylinderGeometry(0.6, 0.6, 2.2, 8);
-        const npcMat = new THREE.MeshStandardMaterial({ color: 0x00ccff });
-        this.npcMisiones = new THREE.Mesh(npcGeo, npcMat);
-        this.npcMisiones.position.set(0, 1.1, -12);
-        this.escena.add(this.npcMisiones);
-
-        // Signo Misión
-        const signoGeo = new THREE.BoxGeometry(0.3, 0.8, 0.3);
-        const signoMat = new THREE.MeshBasicMaterial({ color: 0xffff00 });
-        const signo = new THREE.Mesh(signoGeo, signoMat);
-        signo.position.set(0, 2.2, 0);
-        this.npcMisiones.add(signo);
-
-        // Vetas
-        this.vetasMineral = [];
-        for (let i = 0; i < 5; i++) {
-            const vetaGeo = new THREE.DodecahedronGeometry(0.9);
-            const vetaMat = new THREE.MeshStandardMaterial({ color: 0xffd700 });
-            const veta = new THREE.Mesh(vetaGeo, vetaMat);
-            veta.position.set(15 + (i * 4), 0.6, -10 - (i * 5));
-            this.escena.add(veta);
-            this.vetasMineral.push(veta);
-        }
-
-        // Enemigos
-        this.enemigos = [];
-        this.enemigos.push(new Enemigo(this.escena, 6, -30));
-        this.enemigos.push(new Enemigo(this.escena, -6, -35));
-        this.enemigos.push(new Enemigo(this.escena, 0, -55, true));
-    },
-
-    interactuar() {
-        if (!this.jugador) return;
-        const posJ = this.jugador.malla.position;
-
-        if (posJ.distanceTo(this.npcMisiones.position) < 4) {
-            GestorUI.abrirVentanaNPC(
-                "Capitán de la Guardia",
-                "¡Saludos! Los orcos amenazan el poblado. Elimina a 2 de ellos para protegernos.",
-                true
-            );
-            return;
-        }
-
-        this.vetasMineral.forEach((veta) => {
-            if (veta.visible && posJ.distanceTo(veta.position) < 3.5) {
-                veta.visible = false;
-                GestorUI.agregarAlInventario('🪨');
-                GestorUI.aumentarMineria();
-                alert('¡Mineral recolectado! (+1 Mena de Oro)');
-            }
-        });
-    },
-
-    atacar(danio) {
-        if (!this.jugador) return;
-        this.enemigos.forEach(e => {
-            if (e.vida > 0 && this.jugador.malla.position.distanceTo(e.malla.position) < 4) {
-                e.recibirDanio(danio);
-            }
-        });
-    },
-
-    redimensionar() {
-        if (this.camara && this.renderizador) {
-            const ancho = window.innerWidth;
-            const alto = window.innerHeight;
-            this.camara.aspect = ancho / alto;
-            this.camara.updateProjectionMatrix();
-            this.renderizador.setSize(ancho, alto);
-        }
+        this.activo = true;
+        this.bucle();
     },
 
     bucle() {
         if (!this.activo) return;
-
         requestAnimationFrame(() => this.bucle());
-
         if (this.jugador) this.jugador.actualizar(this.camara);
-
-        this.enemigos.forEach(e => {
-            e.actualizar(this.jugador.malla.position, (danio) => {
-                this.jugador.recibirDanio(danio);
-            });
-        });
-
-        const posJ = this.jugador.malla.position;
-        const marcador = document.getElementById('marcador-posicion');
-        if (marcador) {
-            marcador.style.transform = `translate(${posJ.x * 0.8}px, ${posJ.z * 0.8}px)`;
-        }
-
-        // Renderizar fotograma en la pantalla
         this.renderizador.render(this.escena, this.camara);
-
-        // Actualizar contador en el panel DEBUG
-        this.fotogramasRenderizados++;
-        if (this.fotogramasRenderizados % 60 === 0) {
-            this.log(`Ejecutando... FPS activos. Fotogramas: ${this.fotogramasRenderizados}`);
-        }
     }
 };
+
+// Exportar explícitamente a la ventana global
+window.MotorJuego = MotorJuego;
