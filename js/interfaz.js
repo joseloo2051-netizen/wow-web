@@ -1,15 +1,27 @@
-// Gestor principal de la interfaz de usuario
+// Declaración global explícita para que motor.js y el resto de scripts la puedan usar
+window.registrarLog = function(mensaje, esError = false) {
+    console.log(`[WoW-Log]: ${mensaje}`);
+    const logDiv = document.getElementById('log-consola');
+    if (logDiv) {
+        const item = document.createElement('div');
+        item.style.color = esError ? '#ff4444' : '#00ff00';
+        item.innerText = `> ${mensaje}`;
+        logDiv.appendChild(item);
+        logDiv.scrollTop = logDiv.scrollHeight;
+    }
+};
+
 const GestorUI = {
     personajesGuardados: JSON.parse(localStorage.getItem('wow_personajes')) || [],
     personajeSeleccionado: null,
-
     misionActiva: null,
     progresoMision: 0,
     metaMision: 2,
     nivelMineria: 1,
 
     inicializar() {
-        console.log("LOG UI: Inicializando sistema de interfaz...");
+        window.registrarLog("Inicializando sistema de interfaz...");
+        
         document.getElementById('boton-ingresar').addEventListener('click', () => this.irA('pantalla-selector'));
         document.getElementById('boton-ir-crear').addEventListener('click', () => this.irA('pantalla-creador'));
         document.getElementById('boton-guardar-personaje').addEventListener('click', () => this.crearPersonaje());
@@ -24,15 +36,9 @@ const GestorUI = {
     },
 
     irA(idPantalla) {
-        console.log(`LOG UI: Cambiando a pantalla -> ${idPantalla}`);
+        window.registrarLog(`Cambiando a pantalla -> ${idPantalla}`);
         document.querySelectorAll('.pantalla').forEach(p => p.classList.add('oculta'));
-        
-        const pantallaObjetivo = document.getElementById(idPantalla);
-        if (pantallaObjetivo) {
-            pantallaObjetivo.classList.remove('oculta');
-        } else {
-            console.error(`ERROR UI: No se encontró la pantalla con ID: ${idPantalla}`);
-        }
+        document.getElementById(idPantalla).classList.remove('oculta');
     },
 
     crearPersonaje() {
@@ -43,7 +49,7 @@ const GestorUI = {
         this.personajesGuardados.push(nuevoPersonaje);
         localStorage.setItem('wow_personajes', JSON.stringify(this.personajesGuardados));
 
-        console.log("LOG UI: Personaje creado ->", nuevoPersonaje);
+        window.registrarLog(`Personaje creado: ${nombre} (${clase})`);
         this.actualizarListaPersonajes();
         this.irA('pantalla-selector');
     },
@@ -56,19 +62,18 @@ const GestorUI = {
             const div = document.createElement('div');
             div.className = 'marco-wow';
             div.style.margin = '5px 0';
+            div.style.padding = '8px';
             div.style.cursor = 'pointer';
             div.innerText = `${p.nombre} - ${p.clase}`;
             div.onclick = () => {
                 this.personajeSeleccionado = p;
-                console.log("LOG UI: Personaje seleccionado ->", p.nombre);
-                alert(`Personaje seleccionado: ${p.nombre}`);
+                window.registrarLog(`Personaje seleccionado -> ${p.nombre}`);
             };
             contenedor.appendChild(div);
         });
     },
 
     entrarAlMundo() {
-        console.log("LOG UI: Intentando entrar al mundo...");
         if (!this.personajeSeleccionado && this.personajesGuardados.length > 0) {
             this.personajeSeleccionado = this.personajesGuardados[0];
         }
@@ -79,15 +84,16 @@ const GestorUI = {
         }
 
         document.getElementById('hud-nombre').innerText = this.personajeSeleccionado.nombre;
+        window.registrarLog("Intentando entrar al mundo...");
+
         this.irA('pantalla-juego');
 
-        // Retardo deliberado para permitir la actualización de la vista HTML
         setTimeout(() => {
             if (window.MotorJuego) {
-                console.log("LOG UI: Invocando MotorJuego.iniciarJuego()...");
+                window.registrarLog("Invocando MotorJuego.iniciarJuego()...");
                 window.MotorJuego.iniciarJuego();
             } else {
-                console.error("ERROR CRÍTICO: No se encontró la variable global MotorJuego.");
+                window.registrarLog("ERROR CRÍTICO: No se encontró la variable global MotorJuego.", true);
             }
         }, 100);
     },
@@ -130,7 +136,7 @@ const GestorUI = {
             this.progresoMision++;
             if (this.progresoMision >= this.metaMision) {
                 alert('¡Misión Completada! Has recibido una Espada Legendaria.');
-                this.agregarAlInventario('⚔️️');
+                this.agregarAlInventario('⚔');
                 this.misionActiva = null;
                 document.getElementById('mision-texto').innerText = "Sin misiones activas";
             } else {
@@ -149,4 +155,5 @@ const GestorUI = {
     }
 };
 
+window.GestorUI = GestorUI;
 window.onload = () => GestorUI.inicializar();
