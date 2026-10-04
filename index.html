@@ -5,15 +5,14 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>World of Warcraft - Web Edition</title>
     <link rel="stylesheet" href="estilo.css">
-    <!-- Librería Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 </head>
-<body>
+<body oncontextmenu="return false;">
 
     <!-- Contenedor 3D -->
     <div id="contenedor-3d"></div>
 
-    <!-- Consola de Logs -->
+    <!-- Consola de depuración -->
     <div id="log-consola">
         <div><b>--- REGISTRO DE EVENTOS (LOGS) ---</b></div>
     </div>
@@ -66,9 +65,9 @@
             <div id="nivel-profesion">Minería Nivel: 1</div>
         </div>
 
-        <!-- Minimapa -->
+        <!-- Minimapa y Zona actual -->
         <div id="minimapa" class="marco-wow">
-            <div class="titulo-minimapa">Azeroth</div>
+            <div class="titulo-minimapa" id="nombre-zona">Bosque de Elwynn</div>
             <div id="marcador-posicion">▲</div>
         </div>
 
@@ -80,7 +79,7 @@
             <button id="boton-cerrar-npc" class="boton-wow secundario">Cerrar</button>
         </div>
 
-        <!-- Misiones -->
+        <!-- Tracker de Misiones -->
         <div id="tracker-misiones" class="marco-wow">
             <h4>Misiones</h4>
             <div id="mision-texto">Sin misiones activas</div>
@@ -94,17 +93,19 @@
 
         <!-- Barra de Acción -->
         <div id="barra-accion">
-            <button class="casilla-habilidad" id="hab-1">1</button>
-            <button class="casilla-habilidad" id="hab-2">2</button>
-            <button class="casilla-habilidad" id="hab-e">E</button>
-            <button class="casilla-habilidad" id="hab-i">I</button>
+            <button class="casilla-habilidad" id="hab-1" title="Ataque Normal (1)">1</button>
+            <button class="casilla-habilidad" id="hab-2" title="Ataque Pesado (2)">2</button>
+            <button class="casilla-habilidad" id="hab-e" title="Interactuar / Entrar (E)">E</button>
+            <button class="casilla-habilidad" id="hab-i" title="Inventario (I)">I</button>
         </div>
     </div>
 
-    <!-- Carga de Scripts en Orden Correcto -->
+    <!-- Scripts en Orden Módulo -->
     <script src="js/interfaz.js"></script>
     <script src="js/jugador.js"></script>
     <script src="js/enemigo.js"></script>
+    <script src="js/misiones.js"></script>
+    <script src="js/mazmorra.js"></script>
     <script src="js/motor.js"></script>
 </body>
 </html>

@@ -2,9 +2,8 @@ class Jugador {
     constructor(escena) {
         this.vidaMax = 100;
         this.vida = 100;
-        this.velocidad = 0.25;
+        this.velocidad = 0.3;
 
-        // Representación gráfica
         const geo = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 8);
         const mat = new THREE.MeshStandardMaterial({ color: 0x0055ff });
         this.malla = new THREE.Mesh(geo, mat);
@@ -22,12 +21,11 @@ class Jugador {
         if (this.teclas['a'] || this.teclas['arrowleft']) this.malla.position.x -= this.velocidad;
         if (this.teclas['d'] || this.teclas['arrowright']) this.malla.position.x += this.velocidad;
 
-        // La cámara sigue al personaje
         if (camara) {
             camara.position.set(
                 this.malla.position.x,
-                this.malla.position.y + 6,
-                this.malla.position.z + 12
+                this.malla.position.y + 7,
+                this.malla.position.z + 13
             );
             camara.lookAt(this.malla.position);
         }
@@ -40,7 +38,7 @@ class Jugador {
         if (barra) barra.style.width = `${pct}%`;
 
         if (this.vida <= 0) {
-            alert('¡Has muerto! Respawn en la taberna.');
+            alert('¡Has caido en combate! Respawn en el poblado.');
             this.vida = this.vidaMax;
             this.malla.position.set(0, 0.9, 0);
             if (barra) barra.style.width = '100%';

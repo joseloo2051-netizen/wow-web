@@ -1,3 +1,8 @@
+// Bloqueo global de Clic Derecho
+window.addEventListener('contextmenu', (e) => {
+    e.preventDefault();
+}, false);
+
 window.registrarLog = function(mensaje, esError = false) {
     console.log(`[WoW-Log]: ${mensaje}`);
     const logDiv = document.getElementById('log-consola');
@@ -13,9 +18,6 @@ window.registrarLog = function(mensaje, esError = false) {
 const GestorUI = {
     personajesGuardados: JSON.parse(localStorage.getItem('wow_personajes')) || [],
     personajeSeleccionado: null,
-    misionActiva: null,
-    progresoMision: 0,
-    metaMision: 2,
     nivelMineria: 1,
 
     inicializar() {
@@ -29,7 +31,10 @@ const GestorUI = {
         document.getElementById('boton-cerrar-npc').addEventListener('click', () => {
             document.getElementById('ventana-npc').classList.add('oculta');
         });
-        document.getElementById('boton-aceptar-mision').addEventListener('click', () => this.aceptarMision());
+        document.getElementById('boton-aceptar-mision').addEventListener('click', () => {
+            if (window.GestorMisiones) window.GestorMisiones.aceptarMisionActual();
+            document.getElementById('ventana-npc').classList.add('oculta');
+        });
 
         this.actualizarListaPersonajes();
     },
@@ -83,16 +88,13 @@ const GestorUI = {
         }
 
         document.getElementById('hud-nombre').innerText = this.personajeSeleccionado.nombre;
-        window.registrarLog("Intentando entrar al mundo...");
+        window.registrarLog("Entrando al mundo...");
 
         this.irA('pantalla-juego');
 
         setTimeout(() => {
             if (window.MotorJuego) {
-                window.registrarLog("Invocando MotorJuego.iniciarJuego()...");
                 window.MotorJuego.iniciarJuego();
-            } else {
-                window.registrarLog("ERROR CRÍTICO: No se encontró la variable global MotorJuego.", true);
             }
         }, 100);
     },
@@ -114,7 +116,7 @@ const GestorUI = {
         document.getElementById('npc-texto').innerText = dialogo;
         const btnMision = document.getElementById('boton-aceptar-mision');
 
-        if (tieneMision && !this.misionActiva) {
+        if (tieneMision) {
             btnMision.classList.remove('oculta');
         } else {
             btnMision.classList.add('oculta');
@@ -123,29 +125,9 @@ const GestorUI = {
         document.getElementById('ventana-npc').classList.remove('oculta');
     },
 
-    aceptarMision() {
-        this.misionActiva = "Limpieza de Orcos";
-        this.progresoMision = 0;
-        this.actualizarTrackerMisiones();
-        document.getElementById('ventana-npc').classList.add('oculta');
-    },
-
-    notificarBajaEnemigo() {
-        if (this.misionActiva) {
-            this.progresoMision++;
-            if (this.progresoMision >= this.metaMision) {
-                alert('¡Misión Completada! Has recibido una Espada Legendaria.');
-                this.agregarAlInventario('⚔');
-                this.misionActiva = null;
-                document.getElementById('mision-texto').innerText = "Sin misiones activas";
-            } else {
-                this.actualizarTrackerMisiones();
-            }
-        }
-    },
-
-    actualizarTrackerMisiones() {
-        document.getElementById('mision-texto').innerText = `${this.misionActiva}: ${this.progresoMision}/${this.metaMision} derrotados`;
+    actualizarZona(nombreZona) {
+        const elemento = document.getElementById('nombre-zona');
+        if (elemento) elemento.innerText = nombreZona;
     },
 
     aumentarMineria() {
