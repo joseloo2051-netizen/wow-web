@@ -1,4 +1,3 @@
-// Declaración global explícita para que motor.js y el resto de scripts la puedan usar
 window.registrarLog = function(mensaje, esError = false) {
     console.log(`[WoW-Log]: ${mensaje}`);
     const logDiv = document.getElementById('log-consola');

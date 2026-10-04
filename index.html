@@ -10,11 +10,11 @@
 </head>
 <body>
 
-    <!-- Contenedor del lienzo 3D -->
+    <!-- Contenedor 3D -->
     <div id="contenedor-3d"></div>
 
-    <!-- Panel de Logs para depuración en pantalla -->
-    <div id="log-consola" style="position: absolute; bottom: 80px; left: 10px; z-index: 9999; background: rgba(0,0,0,0.85); color: #00ff00; font-family: monospace; font-size: 11px; padding: 10px; border: 1px solid #444; max-width: 400px; max-height: 150px; overflow-y: auto; pointer-events: auto;">
+    <!-- Consola de Logs -->
+    <div id="log-consola">
         <div><b>--- REGISTRO DE EVENTOS (LOGS) ---</b></div>
     </div>
 
@@ -57,11 +57,11 @@
         </div>
     </div>
 
-    <!-- PANTALLA 4: INTERFAZ DENTRO DEL JUEGO (HUD) -->
+    <!-- PANTALLA 4: HUD DEL JUEGO -->
     <div id="pantalla-juego" class="pantalla oculta">
         <!-- Retrato del Jugador -->
-        <div id="marcador-jugador" class="marco-retrato marco-wow">
-            <div class="nombre-personaje" id="hud-nombre">Jugador</div>
+        <div id="marcador-jugador" class="marco-wow">
+            <div id="hud-nombre">Jugador</div>
             <div class="barra-vida"><div id="barra-vida-jugador" class="relleno-vida"></div></div>
             <div id="nivel-profesion">Minería Nivel: 1</div>
         </div>
@@ -72,7 +72,7 @@
             <div id="marcador-posicion">▲</div>
         </div>
 
-        <!-- Ventana de Diálogo / Misiones NPC -->
+        <!-- Ventana NPC -->
         <div id="ventana-npc" class="marco-wow oculta">
             <h3 id="npc-nombre">NPC</h3>
             <p id="npc-texto">Hola aventurero...</p>
@@ -80,28 +80,28 @@
             <button id="boton-cerrar-npc" class="boton-wow secundario">Cerrar</button>
         </div>
 
-        <!-- Tracker de Misiones Activas -->
+        <!-- Misiones -->
         <div id="tracker-misiones" class="marco-wow">
             <h4>Misiones</h4>
             <div id="mision-texto">Sin misiones activas</div>
         </div>
 
-        <!-- Inventario (Bolsa) -->
+        <!-- Inventario -->
         <div id="inventario" class="marco-wow oculta">
             <h3>Inventario</h3>
             <div class="rejilla-inventario" id="rejilla-inventario"></div>
         </div>
 
-        <!-- Barra de Acción / Habilidades -->
+        <!-- Barra de Acción -->
         <div id="barra-accion">
-            <button class="casilla-habilidad" id="hab-1" title="Ataque Básico (Tecla 1)">1</button>
-            <button class="casilla-habilidad" id="hab-2" title="Habilidad Especial (Tecla 2)">2</button>
-            <button class="casilla-habilidad" id="hab-e" title="Interactuar / Picar (Tecla E)">E</button>
-            <button class="casilla-habilidad" id="hab-i" title="Abrir Inventario (Tecla I)">I</button>
+            <button class="casilla-habilidad" id="hab-1">1</button>
+            <button class="casilla-habilidad" id="hab-2">2</button>
+            <button class="casilla-habilidad" id="hab-e">E</button>
+            <button class="casilla-habilidad" id="hab-i">I</button>
         </div>
     </div>
 
-    <!-- Scripts del Juego -->
+    <!-- Carga de Scripts en Orden Correcto -->
     <script src="js/interfaz.js"></script>
     <script src="js/jugador.js"></script>
     <script src="js/enemigo.js"></script>

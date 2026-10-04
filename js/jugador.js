@@ -1,48 +1,51 @@
 class Jugador {
     constructor(escena) {
-        this.escena = escena;
         this.vidaMax = 100;
         this.vida = 100;
+        this.velocidad = 0.25;
 
-        // Visual del jugador
-        const geometria = new THREE.CylinderGeometry(0.5, 0.5, 2, 8);
-        const material = new THREE.MeshStandardMaterial({ color: 0x0066ff });
-        this.malla = new THREE.Mesh(geometria, material);
-        this.malla.position.set(0, 1, 0);
-        this.escena.add(this.malla);
+        // Representación gráfica
+        const geo = new THREE.CylinderGeometry(0.5, 0.5, 1.8, 8);
+        const mat = new THREE.MeshStandardMaterial({ color: 0x0055ff });
+        this.malla = new THREE.Mesh(geo, mat);
+        this.malla.position.set(0, 0.9, 0);
+        escena.add(this.malla);
 
-        this.velocidad = 0.2;
-        this.rotacionVelocidad = 0.04;
         this.teclas = {};
-
         window.addEventListener('keydown', (e) => this.teclas[e.key.toLowerCase()] = true);
         window.addEventListener('keyup', (e) => this.teclas[e.key.toLowerCase()] = false);
     }
 
     actualizar(camara) {
-        if (this.teclas['a']) this.malla.rotation.y += this.rotacionVelocidad;
-        if (this.teclas['d']) this.malla.rotation.y -= this.rotacionVelocidad;
+        if (this.teclas['w'] || this.teclas['arrowup']) this.malla.position.z -= this.velocidad;
+        if (this.teclas['s'] || this.teclas['arrowdown']) this.malla.position.z += this.velocidad;
+        if (this.teclas['a'] || this.teclas['arrowleft']) this.malla.position.x -= this.velocidad;
+        if (this.teclas['d'] || this.teclas['arrowright']) this.malla.position.x += this.velocidad;
 
-        if (this.teclas['w']) this.malla.translateZ(-this.velocidad);
-        if (this.teclas['s']) this.malla.translateZ(this.velocidad);
-
-        // Control de cámara en 3ª persona
-        const offset = new THREE.Vector3(0, 4, 8);
-        offset.applyAxisAngle(new THREE.Vector3(0, 1, 0), this.malla.rotation.y);
-        camara.position.copy(this.malla.position).add(offset);
-        camara.lookAt(this.malla.position.clone().add(new THREE.Vector3(0, 1.5, 0)));
+        // La cámara sigue al personaje
+        if (camara) {
+            camara.position.set(
+                this.malla.position.x,
+                this.malla.position.y + 6,
+                this.malla.position.z + 12
+            );
+            camara.lookAt(this.malla.position);
+        }
     }
 
     recibirDanio(cantidad) {
         this.vida = Math.max(0, this.vida - cantidad);
-        const porcentaje = (this.vida / this.vidaMax) * 100;
-        document.getElementById('barra-vida-jugador').style.width = `${porcentaje}%`;
+        const pct = (this.vida / this.vidaMax) * 100;
+        const barra = document.getElementById('barra-vida-jugador');
+        if (barra) barra.style.width = `${pct}%`;
 
         if (this.vida <= 0) {
-            alert('Has sido derrotado. Reapareciendo en la ciudad...');
-            this.malla.position.set(0, 1, 0);
+            alert('¡Has muerto! Respawn en la taberna.');
             this.vida = this.vidaMax;
-            document.getElementById('barra-vida-jugador').style.width = '100%';
+            this.malla.position.set(0, 0.9, 0);
+            if (barra) barra.style.width = '100%';
         }
     }
 }
+
+window.Jugador = Jugador;

@@ -1,38 +1,48 @@
 class Enemigo {
     constructor(escena, x, z, esJefe = false) {
-        this.escena = escena;
         this.esJefe = esJefe;
-        this.vida = esJefe ? 250 : 60;
+        this.vidaMax = esJefe ? 150 : 50;
+        this.vida = this.vidaMax;
+        this.escena = escena;
 
-        const tamaño = esJefe ? 2.5 : 1;
-        const color = esJefe ? 0x990000 : 0xcc3300;
+        const radio = esJefe ? 1.0 : 0.6;
+        const alto = esJefe ? 2.8 : 1.8;
+        const color = esJefe ? 0x880000 : 0xaa2222;
 
-        const geometria = new THREE.BoxGeometry(tamaño, tamaño * 2, tamaño);
-        const material = new THREE.MeshStandardMaterial({ color: color });
-        this.malla = new THREE.Mesh(geometria, material);
-        this.malla.position.set(x, tamaño, z);
-        this.escena.add(this.malla);
+        const geo = new THREE.CylinderGeometry(radio, radio, alto, 8);
+        const mat = new THREE.MeshStandardMaterial({ color });
+        this.malla = new THREE.Mesh(geo, mat);
+        this.malla.position.set(x, alto / 2, z);
+        escena.add(this.malla);
+
+        this.ultimoAtaque = 0;
     }
 
-    actualizar(posicionJugador, alAtaqueCallback) {
+    actualizar(posJugador, callbackAtaque) {
         if (this.vida <= 0) return;
 
-        const distancia = this.malla.position.distanceTo(posicionJugador);
+        const distancia = this.malla.position.distanceTo(posJugador);
 
-        if (distancia < 15 && distancia > 2) {
-            this.malla.lookAt(posicionJugador.x, this.malla.position.y, posicionJugador.z);
-            this.malla.translateZ(0.05);
-        } else if (distancia <= 2) {
-            alAtaqueCallback(this.esJefe ? 8 : 2);
+        // Persecución
+        if (distancia < 15 && distancia > 1.8) {
+            const dir = new THREE.Vector3().subVectors(posJugador, this.malla.position).normalize();
+            this.malla.position.addScaledVector(dir, 0.05);
+        }
+
+        // Ataque
+        if (distancia <= 2.0 && Date.now() - this.ultimoAtaque > 1500) {
+            this.ultimoAtaque = Date.now();
+            if (callbackAtaque) callbackAtaque(this.esJefe ? 25 : 10);
         }
     }
 
     recibirDanio(cantidad) {
         this.vida -= cantidad;
         if (this.vida <= 0) {
-            this.escena.remove(this.malla);
-            GestorUI.agregarAlInventario(this.esJefe ? '👑' : '🥩');
-            GestorUI.notificarBajaEnemigo();
+            this.malla.visible = false;
+            if (window.GestorUI) window.GestorUI.notificarBajaEnemigo();
         }
     }
 }
+
+window.Enemigo = Enemigo;
