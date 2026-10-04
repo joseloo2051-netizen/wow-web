@@ -7,70 +7,130 @@ const MotorJuego = {
     vetasMineral: [],
     npcMisiones: null,
     activo: false,
+    fotogramasRenderizados: 0,
 
-    iniciarJuego() {
-        const contenedor = document.getElementById('contenedor-3d');
-        contenedor.innerHTML = '';
-
-        // 1. Escena
-        this.escena = new THREE.Scene();
-        this.escena.background = new THREE.Color(0x87ceeb); // Cielo azul
-
-        // 2. Cámara
-        const ancho = window.innerWidth;
-        const alto = window.innerHeight;
-        this.camara = new THREE.PerspectiveCamera(60, ancho / alto, 0.1, 1000);
-
-        // 3. Renderizador
-        this.renderizador = new THREE.WebGLRenderer({ antialias: true });
-        this.renderizador.setSize(ancho, alto);
-        this.renderizador.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-        contenedor.appendChild(this.renderizador.domElement);
-
-        // 4. Iluminación
-        const luzSol = new THREE.DirectionalLight(0xffffff, 1.2);
-        luzSol.position.set(50, 100, 50);
-        this.escena.add(luzSol);
-
-        const luzAmbiental = new THREE.AmbientLight(0xffffff, 0.8);
-        this.escena.add(luzAmbiental);
-
-        // 5. Crear el mundo
-        this.generarTerrenoYMundo();
-
-        // 6. Crear Jugador
-        this.jugador = new Jugador(this.escena);
-
-        // Posicionar cámara inicialmente
-        this.jugador.actualizar(this.camara);
-
-        // Eventos
-        if (!this.eventosConfigurados) {
-            window.addEventListener('keydown', (e) => {
-                if (e.key === '1') this.atacar(20);
-                if (e.key === '2') this.atacar(45);
-                if (e.key.toLowerCase() === 'e') this.interactuar();
-            });
-            window.addEventListener('resize', () => this.redimensionar());
-            this.eventosConfigurados = true;
+    // Método de registro visual y en consola
+    log(mensaje, esError = false) {
+        if (esError) {
+            console.error("MOTOR ERROR:", mensaje);
+        } else {
+            console.log("MOTOR LOG:", mensaje);
         }
 
-        this.activo = true;
-        this.redimensionar();
+        // Crear/Buscar panel de depuración en pantalla
+        let panelDebug = document.getElementById('panel-debug-3d');
+        if (!panelDebug) {
+            panelDebug = document.createElement('div');
+            panelDebug.id = 'panel-debug-3d';
+            panelDebug.style.position = 'absolute';
+            panelDebug.style.top = '10px';
+            panelDebug.style.left = '250px';
+            panelDebug.style.background = 'rgba(0,0,0,0.8)';
+            panelDebug.style.color = '#00ff00';
+            panelDebug.style.padding = '8px';
+            panelDebug.style.fontSize = '12px';
+            panelDebug.style.zIndex = '9999';
+            panelDebug.style.pointerEvents = 'none';
+            document.body.appendChild(panelDebug);
+        }
+        panelDebug.innerText = `[DEBUG 3D] ${mensaje}`;
+    },
 
-        // Arrancar bucle
-        this.bucle();
+    iniciarJuego() {
+        this.log("Iniciando motor 3D...");
+
+        // Verificar existencia de la librería Three.js
+        if (typeof THREE === 'undefined') {
+            this.log("ERROR: La librería Three.js no está cargada en el navegador.", true);
+            alert("Error: No se pudo cargar Three.js. Revisa tu conexión a internet o los CDN en el HTML.");
+            return;
+        }
+
+        const contenedor = document.getElementById('contenedor-3d');
+        if (!contenedor) {
+            this.log("ERROR: No se encontró la etiqueta #contenedor-3d en el DOM.", true);
+            return;
+        }
+
+        contenedor.innerHTML = ''; // Limpiar lienzo anterior
+
+        try {
+            // 1. Crear Escena
+            this.escena = new THREE.Scene();
+            this.escena.background = new THREE.Color(0x87ceeb); // Cielo azul
+            this.log("Escena 3D creada.");
+
+            // 2. Crear Cámara
+            const ancho = window.innerWidth || 800;
+            const alto = window.innerHeight || 600;
+            this.camara = new THREE.PerspectiveCamera(60, ancho / alto, 0.1, 1000);
+            this.log(`Cámara configurada (${ancho}x${alto}).`);
+
+            // 3. Crear Renderizador WebGL
+            this.renderizador = new THREE.WebGLRenderer({ antialias: true, alpha: false });
+            this.renderizador.setSize(ancho, alto);
+            this.renderizador.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+            // Forzar estilos del canvas para garantizar visibilidad
+            const canvas = this.renderizador.domElement;
+            canvas.style.position = 'absolute';
+            canvas.style.top = '0';
+            canvas.style.left = '0';
+            canvas.style.zIndex = '1';
+            
+            contenedor.appendChild(canvas);
+            this.log("Canvas WebGL añadido al DOM.");
+
+            // 4. Luces
+            const luzSol = new THREE.DirectionalLight(0xffffff, 1.2);
+            luzSol.position.set(50, 100, 50);
+            this.escena.add(luzSol);
+
+            const luzAmbiental = new THREE.AmbientLight(0xffffff, 0.8);
+            this.escena.add(luzAmbiental);
+
+            // 5. Generar Terreno
+            this.generarTerrenoYMundo();
+            this.log("Mundo 3D generado.");
+
+            // 6. Crear Jugador
+            this.jugador = new Jugador(this.escena);
+            this.jugador.actualizar(this.camara);
+            this.log("Jugador inicializado.");
+
+            // 7. Controles
+            if (!this.eventosConfigurados) {
+                window.addEventListener('keydown', (e) => {
+                    if (e.key === '1') this.atacar(20);
+                    if (e.key === '2') this.atacar(45);
+                    if (e.key.toLowerCase() === 'e') this.interactuar();
+                });
+                window.addEventListener('resize', () => this.redimensionar());
+                this.eventosConfigurados = true;
+            }
+
+            this.activo = true;
+            this.fotogramasRenderizados = 0;
+            this.redimensionar();
+
+            // Arrancar el bucle de renderizado
+            this.bucle();
+
+        } catch (error) {
+            this.log(`EXCEPCIÓN AL INICIAR: ${error.message}`, true);
+            console.error(error);
+        }
     },
 
     generarTerrenoYMundo() {
-        // Suelo Verde
+        // Suelo Verde (Hierba)
         const sueloGeo = new THREE.PlaneGeometry(200, 200);
         const sueloMat = new THREE.MeshStandardMaterial({ color: 0x3b7a57 });
         const suelo = new THREE.Mesh(sueloGeo, sueloMat);
         suelo.rotation.x = -Math.PI / 2;
         this.escena.add(suelo);
 
-        // Camino de Tierra
+        // Camino
         const caminoGeo = new THREE.PlaneGeometry(10, 150);
         const caminoMat = new THREE.MeshStandardMaterial({ color: 0x8b5a2b });
         const camino = new THREE.Mesh(caminoGeo, caminoMat);
@@ -192,6 +252,13 @@ const MotorJuego = {
             marcador.style.transform = `translate(${posJ.x * 0.8}px, ${posJ.z * 0.8}px)`;
         }
 
+        // Renderizar fotograma en la pantalla
         this.renderizador.render(this.escena, this.camara);
+
+        // Actualizar contador en el panel DEBUG
+        this.fotogramasRenderizados++;
+        if (this.fotogramasRenderizados % 60 === 0) {
+            this.log(`Ejecutando... FPS activos. Fotogramas: ${this.fotogramasRenderizados}`);
+        }
     }
 };

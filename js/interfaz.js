@@ -6,10 +6,10 @@ const GestorUI = {
     misionActiva: null,
     progresoMision: 0,
     metaMision: 2,
-
     nivelMineria: 1,
 
     inicializar() {
+        console.log("LOG UI: Inicializando sistema de interfaz...");
         document.getElementById('boton-ingresar').addEventListener('click', () => this.irA('pantalla-selector'));
         document.getElementById('boton-ir-crear').addEventListener('click', () => this.irA('pantalla-creador'));
         document.getElementById('boton-guardar-personaje').addEventListener('click', () => this.crearPersonaje());
@@ -24,8 +24,15 @@ const GestorUI = {
     },
 
     irA(idPantalla) {
+        console.log(`LOG UI: Cambiando a pantalla -> ${idPantalla}`);
         document.querySelectorAll('.pantalla').forEach(p => p.classList.add('oculta'));
-        document.getElementById(idPantalla).classList.remove('oculta');
+        
+        const pantallaObjetivo = document.getElementById(idPantalla);
+        if (pantallaObjetivo) {
+            pantallaObjetivo.classList.remove('oculta');
+        } else {
+            console.error(`ERROR UI: No se encontró la pantalla con ID: ${idPantalla}`);
+        }
     },
 
     crearPersonaje() {
@@ -36,6 +43,7 @@ const GestorUI = {
         this.personajesGuardados.push(nuevoPersonaje);
         localStorage.setItem('wow_personajes', JSON.stringify(this.personajesGuardados));
 
+        console.log("LOG UI: Personaje creado ->", nuevoPersonaje);
         this.actualizarListaPersonajes();
         this.irA('pantalla-selector');
     },
@@ -52,14 +60,15 @@ const GestorUI = {
             div.innerText = `${p.nombre} - ${p.clase}`;
             div.onclick = () => {
                 this.personajeSeleccionado = p;
+                console.log("LOG UI: Personaje seleccionado ->", p.nombre);
                 alert(`Personaje seleccionado: ${p.nombre}`);
             };
             contenedor.appendChild(div);
         });
     },
 
-    // Transición segura al mundo 3D
     entrarAlMundo() {
+        console.log("LOG UI: Intentando entrar al mundo...");
         if (!this.personajeSeleccionado && this.personajesGuardados.length > 0) {
             this.personajeSeleccionado = this.personajesGuardados[0];
         }
@@ -70,16 +79,17 @@ const GestorUI = {
         }
 
         document.getElementById('hud-nombre').innerText = this.personajeSeleccionado.nombre;
-        
-        // 1. Mostrar la pantalla del juego
         this.irA('pantalla-juego');
 
-        // 2. Dar tiempo al navegador para procesar el cambio visual de CSS antes de iniciar el lienzo 3D
+        // Retardo deliberado para permitir la actualización de la vista HTML
         setTimeout(() => {
             if (window.MotorJuego) {
+                console.log("LOG UI: Invocando MotorJuego.iniciarJuego()...");
                 window.MotorJuego.iniciarJuego();
+            } else {
+                console.error("ERROR CRÍTICO: No se encontró la variable global MotorJuego.");
             }
-        }, 50);
+        }, 100);
     },
 
     alternarInventario() {
@@ -120,7 +130,7 @@ const GestorUI = {
             this.progresoMision++;
             if (this.progresoMision >= this.metaMision) {
                 alert('¡Misión Completada! Has recibido una Espada Legendaria.');
-                this.agregarAlInventario('⚔️');
+                this.agregarAlInventario('⚔️️');
                 this.misionActiva = null;
                 document.getElementById('mision-texto').innerText = "Sin misiones activas";
             } else {
