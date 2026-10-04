@@ -14,6 +14,7 @@ body, html {
     color: #f0d9a2;
 }
 
+/* El lienzo 3D debe estar en z-index: 1 */
 #contenedor-3d {
     position: absolute;
     top: 0;
@@ -23,6 +24,13 @@ body, html {
     z-index: 1;
 }
 
+#contenedor-3d canvas {
+    display: block;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+/* La interfaz del HUD va por encima (z-index: 10) pero SIN FONDO NEGRO */
 .pantalla {
     position: absolute;
     top: 0;
@@ -31,6 +39,12 @@ body, html {
     height: 100%;
     z-index: 10;
     pointer-events: none;
+    background: transparent !important; /* IMPORTANTE: Transparente para ver el 3D */
+}
+
+/* Las pantallas de menú sí llevan fondo */
+#pantalla-login, #pantalla-creador, #pantalla-selector {
+    background: rgba(0, 0, 0, 0.85) !important;
 }
 
 .activa { display: block; }

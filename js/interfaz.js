@@ -5,7 +5,7 @@ const GestorUI = {
 
     misionActiva: null,
     progresoMision: 0,
-    metaMision: 2, // Requiere matar 2 enemigos
+    metaMision: 2,
 
     nivelMineria: 1,
 
@@ -58,6 +58,7 @@ const GestorUI = {
         });
     },
 
+    // Transición segura al mundo 3D
     entrarAlMundo() {
         if (!this.personajeSeleccionado && this.personajesGuardados.length > 0) {
             this.personajeSeleccionado = this.personajesGuardados[0];
@@ -69,12 +70,16 @@ const GestorUI = {
         }
 
         document.getElementById('hud-nombre').innerText = this.personajeSeleccionado.nombre;
+        
+        // 1. Mostrar la pantalla del juego
         this.irA('pantalla-juego');
 
-        // Inicializar motor gráfico y garantizar redimensionamiento
-        if (window.MotorJuego) {
-            window.MotorJuego.iniciarJuego();
-        }
+        // 2. Dar tiempo al navegador para procesar el cambio visual de CSS antes de iniciar el lienzo 3D
+        setTimeout(() => {
+            if (window.MotorJuego) {
+                window.MotorJuego.iniciarJuego();
+            }
+        }, 50);
     },
 
     alternarInventario() {
@@ -89,7 +94,6 @@ const GestorUI = {
         rejilla.appendChild(casilla);
     },
 
-    // Sistema de NPC y Misiones
     abrirVentanaNPC(nombreNPC, dialogo, tieneMision = false) {
         document.getElementById('npc-nombre').innerText = nombreNPC;
         document.getElementById('npc-texto').innerText = dialogo;
