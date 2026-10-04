@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>World of Warcraft - Web Edition</title>
+    <link rel="stylesheet" href="estilo.css">
+    <!-- Librería Three.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+</head>
+<body>
+
+    <!-- Contenedor del lienzo 3D -->
+    <div id="contenedor-3d"></div>
+
+    <!-- PANTALLA 1: LOGIN -->
+    <div id="pantalla-login" class="pantalla activa">
+        <div class="marco-wow cuadro-dialogo">
+            <h1>WORLD OF WARCRAFT</h1>
+            <h3>Edición Web</h3>
+            <input type="text" id="usuario" placeholder="Nombre de usuario">
+            <input type="password" id="clave" placeholder="Contraseña">
+            <button id="boton-ingresar" class="boton-wow">Iniciar Sesión</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 2: CREADOR DE PERSONAJE -->
+    <div id="pantalla-creador" class="pantalla oculta">
+        <div class="panel-lateral izquierdo marco-wow">
+            <h2>Crear Personaje</h2>
+            <label>Nombre:</label>
+            <input type="text" id="nombre-personaje" placeholder="Ej. Arthas">
+
+            <label>Clase:</label>
+            <select id="clase-personaje">
+                <option value="Guerrero">Guerrero</option>
+                <option value="Mago">Mago</option>
+                <option value="Cazador">Cazador</option>
+            </select>
+
+            <button id="boton-guardar-personaje" class="boton-wow">Guardar Personaje</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 3: SELECTOR DE PERSONAJE -->
+    <div id="pantalla-selector" class="pantalla oculta">
+        <div class="panel-lateral derecho marco-wow">
+            <h2>Seleccionar Personaje</h2>
+            <div id="lista-personajes"></div>
+            <button id="boton-entrar-mundo" class="boton-wow">Entrar al Mundo</button>
+            <button id="boton-ir-crear" class="boton-wow secundario">Crear Nuevo</button>
+        </div>
+    </div>
+
+    <!-- PANTALLA 4: INTERFAZ DENTRO DEL JUEGO (HUD) -->
+    <div id="pantalla-juego" class="pantalla oculta">
+        <!-- Retrato del Jugador -->
+        <div id="marcador-jugador" class="marco-retrato marco-wow">
+            <div class="nombre-personaje" id="hud-nombre">Jugador</div>
+            <div class="barra-vida"><div id="barra-vida-jugador" class="relleno-vida"></div></div>
+            <div id="nivel-profesion">Minería Nivel: 1</div>
+        </div>
+
+        <!-- Minimapa -->
+        <div id="minimapa" class="marco-wow">
+            <div class="titulo-minimapa">Azeroth</div>
+            <div id="marcador-posicion">▲</div>
+        </div>
+
+        <!-- Ventana de Diálogo / Misiones NPC -->
+        <div id="ventana-npc" class="marco-wow oculta">
+            <h3 id="npc-nombre">NPC</h3>
+            <p id="npc-texto">Hola aventurero...</p>
+            <button id="boton-aceptar-mision" class="boton-wow">Aceptar Misión</button>
+            <button id="boton-cerrar-npc" class="boton-wow secundario">Cerrar</button>
+        </div>
+
+        <!-- Tracker de Misiones Activas -->
+        <div id="tracker-misiones" class="marco-wow">
+            <h4>Misiones</h4>
+            <div id="mision-texto">Sin misiones activas</div>
+        </div>
+
+        <!-- Inventario (Bolsa) -->
+        <div id="inventario" class="marco-wow oculta">
+            <h3>Inventario</h3>
+            <div class="rejilla-inventario" id="rejilla-inventario"></div>
+        </div>
+
+        <!-- Barra de Acción / Habilidades -->
+        <div id="barra-accion">
+            <button class="casilla-habilidad" id="hab-1" title="Ataque Básico (Tecla 1)">1</button>
+            <button class="casilla-habilidad" id="hab-2" title="Habilidad Especial (Tecla 2)">2</button>
+            <button class="casilla-habilidad" id="hab-e" title="Interactuar / Picar (Tecla E)">E</button>
+            <button class="casilla-habilidad" id="hab-i" title="Abrir Inventario (Tecla I)">I</button>
+        </div>
+    </div>
+
+    <!-- Scripts del Juego -->
+    <script src="js/interfaz.js"></script>
+    <script src="js/jugador.js"></script>
+    <script src="js/enemigo.js"></script>
+    <script src="js/motor.js"></script>
+</body>
+</html>
